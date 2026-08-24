@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Nutricionista</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #219150; }
+        #mensagem { margin-top: 15px; text-align: center; font-size: 14px; color: #d35400; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Criar Conta - Nutricionista</h2>
+        <form id="form-cadastro">
+            <div class="input-group">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" required placeholder="Ex: Dr. João Silva">
+            </div>
+            <div class="input-group">
+                <label for="email">E-mail Profissional</label>
+                <input type="email" id="email" required placeholder="joao@clinica.com">
+            </div>
+            <div class="input-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" required placeholder="Mínimo 6 caracteres">
+            </div>
+            <button type="submit" id="btn-cadastrar">Cadastrar</button>
+        </form>
+        <div id="mensagem"></div>
+    </div>
+
+    <!-- O script vai aqui embaixo -->
+    <script type="module">
+        // Importa a biblioteca do Supabase direto do CDN
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // Substitua com as credenciais do seu projeto Supabase
+        const supabaseUrl = 'https://gytbotbtdbgemucmybtm.supabase.co';
+        const supabaseKey = 'sb_publishable_L94mxiPRpFIbejpmJdeCiA_RUyxUGlh';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const form = document.getElementById('form-cadastro');
+        const mensagem = document.getElementById('mensagem');
+        const btn = document.getElementById('btn-cadastrar');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede a página de recarregar
+            
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            btn.innerText = "Criando conta...";
+            btn.disabled = true;
+
+            // Passo 1: Cria o usuário no sistema de autenticação do Supabase
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: senha
+            });
+
+            if (authError) {
+                mensagem.innerText = "Erro: " + authError.message;
+                btn.innerText = "Cadastrar";
+                btn.disabled = false;
+                return;
+            }
+
+            // Passo 2: O usuário foi criado na Auth. Agora, salvamos o nome e o papel dele na NOSSA tabela "perfis"
+            if (authData.user) {
+                const { error: profileError } = await supabase
+                    .from('perfis')
+                    .insert([
+                        {
+                            id: authData.user.id, // Liga o perfil ao login exato
+                            nome: nome,
+                            papel: 'nutricionista' // Forçamos o papel principal aqui
+                        }
+                    ]);
+
+                if (profileError) {
+                    mensagem.innerText = "Erro ao salvar o perfil: " + profileError.message;
+                    btn.innerText = "Cadastrar";
+                    btn.disabled = false;
+                    return;
+                }
+
+                mensagem.style.color = "#27ae60";
+                mensagem.innerText = "Cadastro realizado com sucesso! Redirecionando para o painel...";
+                
+                // Redireciona para o painel de controle após o sucesso
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html'; 
+                }, 2000);
+            }
+        });
+    </script>
+
+</body>
+</html>

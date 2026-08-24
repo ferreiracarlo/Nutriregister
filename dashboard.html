@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Nutricionista</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { display: flex; height: 100vh; background-color: #f4f7f6; }
+        
+        /* Menu Lateral */
+        .sidebar { width: 250px; background-color: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { font-size: 20px; margin-bottom: 30px; text-align: center; color: #27ae60; }
+        .menu-item { padding: 15px 10px; margin-bottom: 10px; background-color: #34495e; border-radius: 5px; cursor: pointer; transition: 0.3s; color: white; text-decoration: none; display: block;}
+        .menu-item:hover { background-color: #27ae60; }
+        .logout-btn { margin-top: auto; padding: 15px; background-color: #e74c3c; text-align: center; border-radius: 5px; cursor: pointer; color: white; text-decoration: none; border: none; font-size: 16px; }
+        .logout-btn:hover { background-color: #c0392b; }
+
+        /* Área Principal */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .header h1 { color: #333; font-size: 24px; }
+        
+        /* Loading invisível por padrão */
+        #loading { display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 1000; font-size: 24px; color: #2c3e50; }
+        
+        /* Oculta o conteúdo até o login ser verificado */
+        #app-content { display: none; width: 100%; display: flex; }
+    </style>
+</head>
+<body>
+
+    <!-- Tela de Carregamento (Aparece enquanto verifica o login) -->
+    <div id="loading">Verificando acesso...</div>
+
+    <!-- Conteúdo do Painel -->
+    <div id="app-content" style="display: none;">
+        
+        <div class="sidebar">
+            <h2>NutriSystem</h2>
+            <a href="#" class="menu-item">🏠 Início</a>
+            <a href="#" class="menu-item">👥 Meus Pacientes</a>
+            <a href="#" class="menu-item">📅 Agenda</a>
+            <a href="#" class="menu-item">🍏 Cardápios</a>
+            <button class="logout-btn" id="btn-sair">Sair do Sistema</button>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1 id="boas-vindas">Carregando...</h1>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <h3>Resumo do Dia</h3>
+                <p style="margin-top: 10px; color: #666;">Aqui vai aparecer a quantidade de consultas hoje, pacientes ativos, etc.</p>
+                <!-- Nas próximas etapas vamos preencher isso com dados dinâmicos -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- O script vai aqui embaixo -->
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // Substitua com as credenciais do seu projeto Supabase
+        const supabaseUrl = 'COLE_SUA_URL_AQUI';
+        const supabaseKey = 'COLE_SUA_CHAVE_ANON_AQUI';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        async function verificarAcesso() {
+            // 1. Pega a sessão atual do navegador
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            // 2. Se não tem sessão ativa, joga o usuário para o cadastro/login
+            if (!session) {
+                window.location.href = 'cadastro.html'; // Mude para login.html quando você criar a tela de login
+                return;
+            }
+
+            // 3. Se está logado, busca os dados do perfil dele
+            const userId = session.user.id;
+            
+            const { data: perfil, error: perfilError } = await supabase
+                .from('perfis')
+                .select('*')
+                .eq('id', userId)
+                .single(); // Exige que retorne apenas 1 linha
+
+            if (perfilError || !perfil) {
+                alert("Erro ao carregar o perfil.");
+                return;
+            }
+
+            // 4. Verificação de segurança adicional (Opcional, mas recomendado)
+            if (perfil.papel !== 'nutricionista') {
+                alert("Acesso negado. Apenas nutricionistas podem acessar esta área.");
+                await supabase.auth.signOut();
+                window.location.href = 'cadastro.html';
+                return;
+            }
+
+            // 5. Deu tudo certo! Mostra o painel e oculta a tela de carregamento
+            document.getElementById('boas-vindas').innerText = `Olá, ${perfil.nome}!`;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app-content').style.display = 'flex';
+        }
+
+        // Lógica do botão de Sair (Logout)
+        document.getElementById('btn-sair').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'cadastro.html'; // Volta para a página inicial
+        });
+
+        // Executa a verificação assim que a página carrega
+        verificarAcesso();
+    </script>
+
+</body>
+</html>
