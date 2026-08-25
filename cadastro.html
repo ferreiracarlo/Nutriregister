@@ -3,108 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Nutricionista</title>
+    <title>Cadastro - NutriSystem</title>
+    <!-- Adicionando uma fonte mais moderna (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
-        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #219150; }
-        #mensagem { margin-top: 15px; text-align: center; font-size: 14px; color: #d35400; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background: linear-gradient(135deg, #f4f7f6 0%, #e0eaf5 100%); 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+        }
+        
+        /* O "Card" agora tem cara de plataforma premium */
+        .card { 
+            background: #ffffff; 
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); 
+            width: 100%; 
+            max-width: 420px; 
+            border: 1px solid #f0f0f0;
+        }
+        
+        h2 { text-align: center; color: #1e293b; margin-bottom: 25px; font-weight: 600; }
+        
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; margin-bottom: 8px; color: #475569; font-size: 14px; font-weight: 500;}
+        
+        /* Inputs modernos e com transição de cor quando clicados */
+        .input-group input:not([type="checkbox"]) { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+            font-size: 15px; 
+            color: #334155;
+            transition: all 0.3s ease; 
+            background-color: #f8fafc;
+        }
+        .input-group input:focus { 
+            border-color: #27ae60; 
+            background-color: #ffffff; 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+        }
+
+        /* Botão do Olhinho da Senha */
+        .btn-ver-senha {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #94a3b8;
+            transition: 0.2s;
+        }
+        .btn-ver-senha:hover { color: #475569; }
+
+        /* Checkbox "Lembrar senha" */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .checkbox-group input { cursor: pointer; width: 16px; height: 16px; accent-color: #27ae60; }
+
+        /* Botão de Enviar */
+        button[type="submit"] { 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #27ae60; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer; 
+            transition: all 0.3s; 
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
+        }
+        button[type="submit"]:hover { 
+            background-color: #219150; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(39, 174, 96, 0.3);
+        }
+
+        #mensagem { margin-top: 20px; text-align: center; font-size: 14px; font-weight: 500; min-height: 20px;}
+        .links-uteis { margin-top: 25px; text-align: center; font-size: 14px; color: #64748b; }
+        .links-uteis a { color: #27ae60; text-decoration: none; font-weight: 600; transition: 0.2s;}
+        .links-uteis a:hover { color: #1e8449; text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>Criar Conta - Nutricionista</h2>
+        <h2>Criar Conta</h2>
         <form id="form-cadastro">
             <div class="input-group">
                 <label for="nome">Nome Completo</label>
                 <input type="text" id="nome" required placeholder="Ex: Dr. João Silva">
             </div>
+            
             <div class="input-group">
                 <label for="email">E-mail Profissional</label>
                 <input type="email" id="email" required placeholder="joao@clinica.com">
             </div>
+            
+            <!-- Campo de Senha com o Olhinho -->
             <div class="input-group">
                 <label for="senha">Senha</label>
                 <input type="password" id="senha" required placeholder="Mínimo 6 caracteres">
+                <button type="button" class="btn-ver-senha" id="toggle-senha" title="Mostrar/Ocultar Senha">👁️</button>
             </div>
+
+            <!-- Lembrar Senha -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="lembrar-senha">
+                <label for="lembrar-senha">Salvar meus dados</label>
+            </div>
+
             <button type="submit" id="btn-cadastrar">Cadastrar</button>
         </form>
         <div id="mensagem"></div>
+        
+        <div class="links-uteis">
+            <p>Já tem uma conta? <a href="login.html">Faça login</a></p>
+        </div>
     </div>
 
-    <!-- O script vai aqui embaixo -->
+    <!-- Script de Funcionalidades (Ocultar/Mostrar Senha + Supabase) -->
     <script type="module">
-        // Importa a biblioteca do Supabase direto do CDN
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-        // Substitua com as credenciais do seu projeto Supabase
+        // SUAS CHAVES AQUI
         const supabaseUrl = 'https://gytbotbtdbgemucmybtm.supabase.co';
-        const supabaseKey = 'sb_publishable_L94mxiPRpFIbejpmJdeCiA_RUyxUGlh';
+        const supabaseKey = 'COLE_AQUI_SUA_CHAVE_ANON';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         const form = document.getElementById('form-cadastro');
         const mensagem = document.getElementById('mensagem');
         const btn = document.getElementById('btn-cadastrar');
 
+        // ==== Lógica do Olhinho de Senha ====
+        const btnToggleSenha = document.getElementById('toggle-senha');
+        const inputSenha = document.getElementById('senha');
+
+        btnToggleSenha.addEventListener('click', () => {
+            if (inputSenha.type === 'password') {
+                inputSenha.type = 'text';
+                btnToggleSenha.innerText = '🙈'; // Troca o ícone
+            } else {
+                inputSenha.type = 'password';
+                btnToggleSenha.innerText = '👁️';
+            }
+        });
+
+        // ==== Lógica de Cadastro ====
         form.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Impede a página de recarregar
+            e.preventDefault();
             
             const nome = document.getElementById('nome').value;
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
+            const lembrarSenha = document.getElementById('lembrar-senha').checked;
 
             btn.innerText = "Criando conta...";
             btn.disabled = true;
+            mensagem.innerText = "";
 
-            // Passo 1: Cria o usuário no sistema de autenticação do Supabase
+            // O Supabase já salva a sessão localmente por padrão, 
+            // mas podemos armazenar o e-mail no LocalStorage se "lembrar" for marcado
+            if(lembrarSenha) {
+                localStorage.setItem('nutrisystem_saved_email', email);
+            } else {
+                localStorage.removeItem('nutrisystem_saved_email');
+            }
+
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
                 password: senha
             });
 
             if (authError) {
+                mensagem.style.color = "#e74c3c";
                 mensagem.innerText = "Erro: " + authError.message;
                 btn.innerText = "Cadastrar";
                 btn.disabled = false;
                 return;
             }
 
-            // Passo 2: O usuário foi criado na Auth. Agora, salvamos o nome e o papel dele na NOSSA tabela "perfis"
             if (authData.user) {
                 const { error: profileError } = await supabase
                     .from('perfis')
-                    .insert([
-                        {
-                            id: authData.user.id, // Liga o perfil ao login exato
-                            nome: nome,
-                            papel: 'nutricionista' // Forçamos o papel principal aqui
-                        }
-                    ]);
+                    .insert([{ id: authData.user.id, nome: nome, papel: 'nutricionista' }]);
 
                 if (profileError) {
-                    mensagem.innerText = "Erro ao salvar o perfil: " + profileError.message;
+                    mensagem.style.color = "#e74c3c";
+                    mensagem.innerText = "Erro ao salvar perfil: " + profileError.message;
                     btn.innerText = "Cadastrar";
                     btn.disabled = false;
                     return;
                 }
 
                 mensagem.style.color = "#27ae60";
-                mensagem.innerText = "Cadastro realizado com sucesso! Redirecionando para o painel...";
+                mensagem.innerText = "Conta criada com sucesso! Entrando...";
                 
-                // Redireciona para o painel de controle após o sucesso
                 setTimeout(() => {
                     window.location.href = 'dashboard.html'; 
-                }, 2000);
+                }, 1500);
             }
         });
     </script>
-
 </body>
 </html>
