@@ -42,7 +42,6 @@
             background-color: #f8fafc;
         }
         .input-group input:focus { 
-            /* Usando um azul moderno para diferenciar do verde do cadastro */
             border-color: #3b82f6; 
             background-color: #ffffff; 
             outline: none; 
@@ -78,7 +77,7 @@
         button[type="submit"] { 
             width: 100%; 
             padding: 14px; 
-            background-color: #3b82f6; /* Azul moderno */
+            background-color: #3b82f6; 
             color: white; 
             border: none; 
             border-radius: 8px; 
@@ -107,7 +106,7 @@
         <h2>Entrar no Sistema</h2>
         <form id="form-login">
             <div class="input-group">
-                <label for="email">E-mail Profissional</label>
+                <label for="email">E-mail</label>
                 <input type="email" id="email" required placeholder="Digite seu e-mail">
             </div>
             
@@ -134,9 +133,8 @@
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-        // Mantenha as chaves que você estava usando
         const supabaseUrl = 'https://gytbotbtdbgemucmybtm.supabase.co';
-        const supabaseKey = 'sb_publishable_L94mxiPRpFIbejpmJdeCiA_RUyxUGlh'; // Lembre-se: use a chave ANON!
+        const supabaseKey = 'sb_publishable_L94mxiPRpFIbejpmJdeCiA_RUyxUGlh'; 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         const form = document.getElementById('form-login');
@@ -144,6 +142,8 @@
         const btn = document.getElementById('btn-entrar');
         const inputEmail = document.getElementById('email');
         const checkboxLembrar = document.getElementById('lembrar-senha');
+        const btnToggleSenha = document.getElementById('toggle-senha');
+        const inputSenha = document.getElementById('senha');
 
         // ==== Lógica de "Lembrar meu e-mail" ao carregar a página ====
         window.onload = () => {
@@ -155,9 +155,6 @@
         };
 
         // ==== Lógica do Olhinho de Senha ====
-        const btnToggleSenha = document.getElementById('toggle-senha');
-        const inputSenha = document.getElementById('senha');
-
         btnToggleSenha.addEventListener('click', () => {
             if (inputSenha.type === 'password') {
                 inputSenha.type = 'text';
@@ -168,7 +165,7 @@
             }
         });
 
-        // ==== Lógica de Login ====
+        // ==== Lógica de Login com Redirecionamento Dinâmico por Perfil ====
         form.addEventListener('submit', async (e) => {
             e.preventDefault(); 
             
@@ -179,22 +176,38 @@
             btn.disabled = true;
             mensagem.innerText = "";
 
-            // Salva ou remove o e-mail do armazenamento do navegador baseado no checkbox
             if (checkboxLembrar.checked) {
                 localStorage.setItem('nutrisystem_saved_email', email);
             } else {
                 localStorage.removeItem('nutrisystem_saved_email');
             }
 
-            // Tenta fazer o login no Supabase
-            const { data, error } = await supabase.auth.signInWithPassword({
+            // 1. Tenta autenticar no Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: senha
             });
 
-            if (error) {
+            if (authError) {
                 mensagem.style.color = "#e74c3c";
                 mensagem.innerText = "Erro ao entrar: E-mail ou senha incorretos.";
+                btn.innerText = "Entrar";
+                btn.disabled = false;
+                return;
+            }
+
+            const userId = authData.user.id;
+
+            // 2. Consulta a tabela 'perfis' para verificar se é nutricionista ou paciente
+            const { data: perfilData, error: perfilError } = await supabase
+                .from('perfis')
+                .select('papel')
+                .eq('id', userId)
+                .single();
+
+            if (perfilError || !perfilData) {
+                mensagem.style.color = "#e74c3c";
+                mensagem.innerText = "Erro ao identificar o perfil do usuário no sistema.";
                 btn.innerText = "Entrar";
                 btn.disabled = false;
                 return;
@@ -203,8 +216,15 @@
             mensagem.style.color = "#27ae60";
             mensagem.innerText = "Login realizado com sucesso! Redirecionando...";
             
+            // 3. Redirecionamento baseado no cargo registrado no banco
             setTimeout(() => {
-                window.location.href = 'dashboard.html'; 
+                if (perfilData.papel === 'nutricionista') {
+                    window.location.href = 'pacientes.html'; 
+                } else if (perfilData.papel === 'paciente') {
+                    window.location.href = 'dashboard_paciente.html'; 
+                } else {
+                    window.location.href = 'dashboard.html'; 
+                }
             }, 1000);
         });
     </script>
